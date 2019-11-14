@@ -155,14 +155,18 @@ public class FeatureStack
 	public static final int CLIJ_DOG                = 21;
 	/** clij mean filter flag index */
 	public static final int CLIJ_MEAN               = 22;
+	/** clij mean filter flag index */
+	public static final int CLIJ_MEDIAN		=23;
+	/** clij median filter flag index */
 
+	
 	/** names of available filters */
 	public static final String[] availableFeatures 
 		= new String[]{	"Gaussian_blur", "Sobel_filter", "Hessian", "Difference_of_gaussians", 
 					   	"Membrane_projections","Variance","Mean", "Minimum", "Maximum", "Median", 
 					   	"Anisotropic_diffusion", "Bilateral", "Lipschitz", "Kuwahara", "Gabor" , 
 					   	"Derivatives", "Laplacian", "Structure", "Entropy", "Neighbors",
-			            "clij_Gaussian", "clij_difference_of_gaussians", "clij_mean"};
+			            "clij_Gaussian", "clij_difference_of_gaussians", "clij_mean", "clij_median"};
 
 	/** Features only available if the ImageScience library is present. */
 	public static final boolean[] IMAGESCIENCE_FEATURES = {
@@ -188,7 +192,8 @@ public class FeatureStack
 		false, // Neighbors
 		false, // clij Gaussian
 		false, // clij Difference of Gaussians
-		false  // clij Mean
+		false,  // clij Mean
+		false   //clij Median
 	};
 
 	/** flags of filters to be used */
@@ -215,7 +220,9 @@ public class FeatureStack
 			false,  /* Neighbors */
 			false,  /* clij Gaussian */
 			false,  /* clij Difference of Gaussians */
-			false   /* clij mean */
+			false,   /* clij mean */
+			false    /*clij median*/	
+				
 	};
 	
 	/** use neighborhood flag */
@@ -425,6 +432,13 @@ public class FeatureStack
 		ImagePlus clijMean = CLIJWrapper.computeMean(radius, originalImage);
 		wholeStack.addSlice(availableFeatures[CLIJ_MEAN] + "_" + radius, clijMean.getProcessor());
 	}
+	/*
+	 * @param radius for mean filter
+	 */
+	public void addClijMedian(float radius) {
+		ImagePlus clijMedian = CLIJWrapper.computeMedian(radius, originalImage);
+		wholeStack.addSlice(availableFeatures[CLIJ_MEDIAN] + "_" + radius, clijMedian.getProcessor());
+	}
 
 	/**
 	 * Calculate Gaussian filter concurrently
@@ -515,6 +529,27 @@ public class FeatureStack
 				ImagePlus clijMean = CLIJWrapper.computeMean(radius, originalImage);
 				clijMean.setTitle(availableFeatures[CLIJ_MEAN] + "_" + radius);
 				return clijMean;
+			}
+		};
+	}
+	/**
+	 * Calculate Median filter using CLIJ
+	 * @param originalImage original input image
+	 * @param radius for median filter
+	 * @return result image
+	 */
+	public Callable<ImagePlus> getClijMedian(
+			final ImagePlus originalImage,
+			final float radius)
+	{
+		if (Thread.currentThread().isInterrupted())
+			return null;
+
+		return new Callable<ImagePlus>(){
+			public ImagePlus call(){
+				ImagePlus clijMedian = CLIJWrapper.computeMedian(radius, originalImage);
+				clijMedian.setTitle(availableFeatures[CLIJ_MEDIAN] + "_" + radius);
+				return clijMedian;
 			}
 		};
 	}
