@@ -67,6 +67,17 @@ public class CLIJWrapper {
             return result;
         }
     }
+     
+    public static ImagePlus computeMedian(float radius, ImagePlus imp) {
+        synchronized (lock) { // supress parallelisation here; the GPU does it parallel anyway and we can reuse memory
+            checkCache(imp);
+            System.out.println("CLIJ " + clij);
+            clij.op().medianBox(clijInput, clijOutput, (int)radius, (int)radius, 0);
+
+            ImagePlus result = clij.pull(clijOutput);
+            return result;
+        }
+    }
 
 
 
